@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build and Run Refactored Flutter Game",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"run",
+				"-t",
+				"lib/main_refactored.dart"
+			],
+			"group": "build",
+			"isBackground": false,
+			"problemMatcher": [
+				"$dart-analyzer"
+			]
+		}
+	]
+}

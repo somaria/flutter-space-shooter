@@ -75,9 +75,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     int score = _gameEngine.score;
     int enemiesKilled = _gameEngine.getEnemiesKilled();
+    int missedEnemies = _gameEngine.getMissedEnemies();
 
     // Save the score to the database
-    await DatabaseHelper.instance.insertScore(score, enemiesKilled);
+    await DatabaseHelper.instance
+        .insertScore(score, enemiesKilled, missedEnemies);
 
     if (!mounted) return;
 
@@ -87,6 +89,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       builder: (context) => GameCompletionDialog(
         score: score,
         enemiesDefeated: enemiesKilled,
+        enemiesMissed: missedEnemies,
         onBackToMenu: () {
           Navigator.of(context).pop(); // Return to home screen
         },
@@ -173,14 +176,25 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           position: enemy, size: _gameEngine.enemySize),
                     ),
 
-                    // Score
+                    // Score and Missed Count
                     Positioned(
                       top: _gameEngine.safeAreaPadding + 10,
                       right: _gameEngine.safeAreaPadding + 10,
-                      child: Text(
-                        'Score: ${_gameEngine.score}',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Score: ${_gameEngine.score}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 24),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Missed: ${_gameEngine.missedEnemies}',
+                            style: const TextStyle(
+                                color: Colors.redAccent, fontSize: 20),
+                          ),
+                        ],
                       ),
                     ),
                   ],

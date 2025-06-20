@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'database_helper.dart';
 
+// Main entry point using refactored code
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Comment out the next line to preserve user scores
-  // Uncomment during development if you need to reset the database
-  // await DatabaseHelper.instance.deleteDatabase();
 
   // Initialize the database
   await DatabaseHelper.instance.database;
@@ -21,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Games',
+      title: 'Flutter Games (Refactored)',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,

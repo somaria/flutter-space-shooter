@@ -19,8 +19,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Increase version to trigger onUpgrade
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
@@ -30,16 +31,27 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         score INTEGER NOT NULL,
         enemies_defeated INTEGER NOT NULL,
+        enemies_missed INTEGER NOT NULL DEFAULT 0,
         date TEXT NOT NULL
       )
     ''');
   }
 
-  Future<int> insertScore(int score, int enemiesDefeated) async {
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add the enemies_missed column if upgrading from version 1
+      await db.execute(
+          'ALTER TABLE scores ADD COLUMN enemies_missed INTEGER NOT NULL DEFAULT 0');
+    }
+  }
+
+  Future<int> insertScore(int score, int enemiesDefeated,
+      [int enemiesMissed = 0]) async {
     final db = await database;
     final data = {
       'score': score,
       'enemies_defeated': enemiesDefeated,
+      'enemies_missed': enemiesMissed,
       'date': DateTime.now().toIso8601String(),
     };
     return await db.insert('scores', data);
@@ -52,5 +64,13 @@ class DatabaseHelper {
       orderBy: 'score DESC',
       limit: limit,
     );
+  }
+
+  // For development use only - delete the database to reset schema
+  Future<void> deleteDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'games.db');
+    await databaseFactory.deleteDatabase(path);
+    _database = null;
   }
 }

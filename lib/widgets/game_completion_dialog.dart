@@ -4,6 +4,7 @@ import '../database_helper.dart';
 class GameCompletionDialog extends StatelessWidget {
   final int score;
   final int enemiesDefeated;
+  final int enemiesMissed;
   final VoidCallback onBackToMenu;
   final VoidCallback? onPlayAgain;
 
@@ -11,6 +12,7 @@ class GameCompletionDialog extends StatelessWidget {
     super.key,
     required this.score,
     required this.enemiesDefeated,
+    this.enemiesMissed = 0,
     required this.onBackToMenu,
     this.onPlayAgain,
   });
@@ -53,6 +55,14 @@ class GameCompletionDialog extends StatelessWidget {
             'Enemies Defeated: $enemiesDefeated',
             style: const TextStyle(
               color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'Enemies Missed: $enemiesMissed',
+            style: const TextStyle(
+              color: Colors.redAccent,
               fontSize: 16,
             ),
           ),

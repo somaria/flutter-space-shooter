@@ -8,10 +8,12 @@ class GameEngine {
   double playerVelocity = 0.0;
   bool isMovingLeft = false;
   bool isMovingRight = false;
-  final double moveSpeed = 0.8; // Further reduced from 2.0 for slower control
-  final double tapMoveDistance = 4.0; // Reduced from 10.0 for more precise movement
-  final double maxVelocity = 3.0; // Further reduced from 6.0 for slower movement
-  final double deceleration = 0.7; // Slightly faster deceleration
+  final double moveSpeed = 0.4; // Reduced by half from 0.8 for slower control
+  final double tapMoveDistance =
+      2.0; // Reduced by half from 4.0 for more precise movement
+  final double maxVelocity =
+      1.5; // Reduced by half from 3.0 for slower movement
+  final double deceleration = 0.7; // Kept the same deceleration rate
 
   // Game objects
   List<Offset> bullets = [];
@@ -19,6 +21,7 @@ class GameEngine {
   List<Offset> enemyVectors = [];
   final double enemySpeed = 1.0;
   int score = 0;
+  int missedEnemies = 0;
   double? screenWidth;
   int totalEnemiesSpawned = 0;
   final int maxEnemies = 10;
@@ -64,10 +67,12 @@ class GameEngine {
     // Update player movement
     if (isMovingLeft) {
       // Gradually accelerate up to max velocity for smooth movement
-      playerVelocity = math.max(playerVelocity - 0.2, -maxVelocity); // Reduced acceleration from 0.5 to 0.2
+      playerVelocity = math.max(playerVelocity - 0.1,
+          -maxVelocity); // Reduced acceleration from 0.2 to 0.1
     } else if (isMovingRight) {
       // Gradually accelerate up to max velocity for smooth movement
-      playerVelocity = math.min(playerVelocity + 0.2, maxVelocity); // Reduced acceleration from 0.5 to 0.2
+      playerVelocity = math.min(playerVelocity + 0.1,
+          maxVelocity); // Reduced acceleration from 0.2 to 0.1
     } else {
       // Apply deceleration when not actively moving
       playerVelocity *= deceleration;
@@ -103,17 +108,32 @@ class GameEngine {
         enemies[i].dy + enemyVectors[i].dy * enemySpeed,
       );
 
+      // We now check for missed enemies in the bounce logic below
+
       // Bounce off safe area boundaries
       if (enemies[i].dx <= safeAreaPadding ||
           enemies[i].dx >= (screenWidth ?? 300) - safeAreaPadding - enemySize) {
         enemyVectors[i] = Offset(-enemyVectors[i].dx, enemyVectors[i].dy);
       }
-      if (enemies[i].dy <= safeAreaPadding ||
-          enemies[i].dy >=
-              MediaQuery.of(context).size.height -
-                  safeAreaPadding -
-                  enemySize) {
+
+      // Only bounce off the top boundary, not the bottom
+      if (enemies[i].dy <= safeAreaPadding) {
         enemyVectors[i] = Offset(enemyVectors[i].dx, -enemyVectors[i].dy);
+      }
+
+      // Check if enemy is approaching the bottom boundary
+      double playerYPosition =
+          MediaQuery.of(context).size.height - safeAreaPadding;
+      if (enemies[i].dy >= playerYPosition - 30) {
+        // If enemy is moving downward (positive dy), count as missed when it reaches player level
+        if (enemyVectors[i].dy > 0) {
+          // Enemy missed - remove it and increment counter
+          enemies.removeAt(i);
+          enemyVectors.removeAt(i);
+          missedEnemies++;
+          checkGameCompletion();
+          continue;
+        }
       }
     }
 
@@ -184,6 +204,7 @@ class GameEngine {
 
   void reset() {
     score = 0;
+    missedEnemies = 0;
     enemies.clear();
     bullets.clear();
     enemyVectors.clear();
@@ -196,6 +217,10 @@ class GameEngine {
 
   int getEnemiesKilled() {
     return score ~/ 10;
+  }
+
+  int getMissedEnemies() {
+    return missedEnemies;
   }
 
   // Check if a position is within the safe area
@@ -219,5 +244,14 @@ class GameEngine {
       playerX = math.min(playerX + tapMoveDistance,
           (screenWidth ?? 400) - safeAreaPadding - 50.0);
     }
+  }
+
+  // Check if enemy is missed (passed below the screen)
+  bool isEnemyMissed(BuildContext context, Offset enemyPosition) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    // Consider enemy missed if it's completely below the player position
+    // This method is kept for backward compatibility but won't be called in normal gameplay
+    // as we handle the missed detection in the main update loop
+    return enemyPosition.dy > screenHeight;
   }
 }

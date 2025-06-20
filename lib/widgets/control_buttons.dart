@@ -4,19 +4,36 @@ class ControlButtons extends StatelessWidget {
   final VoidCallback onShoot;
   final Function(bool) onMoveLeft;
   final Function(bool) onMoveRight;
+  final VoidCallback? onSingleTapLeft; // Added for single tap movement
+  final VoidCallback? onSingleTapRight; // Added for single tap movement
 
   const ControlButtons({
     super.key,
     required this.onShoot,
     required this.onMoveLeft,
     required this.onMoveRight,
+    this.onSingleTapLeft,
+    this.onSingleTapRight,
   });
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    // Add additional margin (20 points) on top of the existing padding
+    final standardMargin = 16.0;
+    final additionalMargin = 20.0;
+
     return Container(
       color: Colors.black,
-      height: 80,
+      height: 80 +
+          (bottomInset > 0
+              ? bottomInset + additionalMargin
+              : standardMargin + additionalMargin),
+      padding: EdgeInsets.only(
+          bottom: bottomInset > 0
+              ? bottomInset + additionalMargin
+              : standardMargin +
+                  additionalMargin), // Add padding for home indicator or standard margin, plus extra margin
       child: Row(
         children: [
           // Shoot button
@@ -48,6 +65,12 @@ class ControlButtons extends StatelessWidget {
               onTapDown: (_) => onMoveLeft(true),
               onTapUp: (_) => onMoveLeft(false),
               onTapCancel: () => onMoveLeft(false),
+              onTap: () {
+                // Use single tap if provided, otherwise use normal behavior
+                if (onSingleTapLeft != null) {
+                  onSingleTapLeft!();
+                }
+              },
               child: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -66,6 +89,12 @@ class ControlButtons extends StatelessWidget {
               onTapDown: (_) => onMoveRight(true),
               onTapUp: (_) => onMoveRight(false),
               onTapCancel: () => onMoveRight(false),
+              onTap: () {
+                // Use single tap if provided, otherwise use normal behavior
+                if (onSingleTapRight != null) {
+                  onSingleTapRight!();
+                }
+              },
               child: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
